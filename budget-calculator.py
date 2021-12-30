@@ -19,7 +19,6 @@ def printBudget():
 
 
 def addNewCategory():
-    print("Adding new category...")
     global money_avaialable
     global categories
 
