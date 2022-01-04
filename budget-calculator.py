@@ -1,26 +1,47 @@
-# Create menu
-# Create function for each option
-# Save budget in a global dictionary
-
 import time
 
 user_choice = 0
-money_avaialable = 0.0
+budget_limit = 0.0
 
 categories = {}
 
 
+def getMoneyAvailable() -> float:
+    money_left = budget_limit
+    for value in categories.values():
+        money_left -= value
+
+    return money_left
+
+
+def getFloatFromInput(text: str) -> float:
+    user_input = input(text)
+    while not user_input.isnumeric():
+        user_input = input(
+            "Ogiltig input, var vänlig välj ett positivt numeriskt värde: ")
+    return float(user_input)
+
+
 def isEnoughMoneyAvailable(negative_change_in_funds: float) -> bool:
-    return (money_avaialable - negative_change_in_funds) > 0
+    return (getMoneyAvailable() - negative_change_in_funds) >= 0
 
 
 def printBudget():
+    budget_expenses = 0
+    width = 15
+    print("Din budget:")
+    print("-----------------------------------")
     for key, value in categories.items():
-        print(f"{key} {'|' : >5} {value : >5}")
+        print(f"{key : <{width}} | {value} SEK")
+        budget_expenses += value
+    print("-----------------------------------")
+    print(f"{'Tillgångar' : <{width}} | {budget_limit} SEK")
+    print(f"{'Kostnader' : <{width}} | {budget_expenses} SEK")
+    print("-----------------------------------")
+    print(f"{'Pengar över' : <{width}} | {budget_limit - budget_expenses} SEK")
 
 
 def addNewCategory():
-    global money_avaialable
     global categories
 
     new_category_name = input("Välj ett namn till din kategori: ")
@@ -28,14 +49,13 @@ def addNewCategory():
         new_category_name = input(
             f"Kategorin {new_category_name} finns redan, var vänlig välj ett annat namn: ")
 
-    category_funds = float(
-        input(f"Hur mycket pengar får användas för den nya kategorin {new_category_name}: "))
+    category_funds = getFloatFromInput(
+        f"Hur mycket pengar får användas för den nya kategorin {new_category_name}: ")
     while not isEnoughMoneyAvailable(category_funds):
-        category_funds = float(input(
+        category_funds = getFloatFromInput(
             f"Det finns inte tillräckligt med pengar för den här kategorin," +
-            f"tillgänglig summa är {money_avaialable}, vad ska vi sätta för gräns istället för den nya kategorin? "))
+            f"tillgänglig summa är {getMoneyAvailable()}, vad ska vi sätta för gräns istället för den nya kategorin? ")
 
-    money_avaialable -= category_funds
     categories[new_category_name] = category_funds
 
     print(
@@ -44,10 +64,9 @@ def addNewCategory():
 
 def updateCategory():
     global categories
-    global money_avaialable
 
     category_to_be_updated = input("Vilken kategori vill du ändra? ")
-    while(category_to_be_updated not in categories.keys()):
+    while category_to_be_updated not in categories.keys():
         category_to_be_updated = input(f"Kategorin {category_to_be_updated} finns inte i budgeten," +
                                        " om du glömt vilka kateogrier som finns, skriv '?': ")
         if(category_to_be_updated == "?"):
@@ -56,8 +75,8 @@ def updateCategory():
                 print(category)
             category_to_be_updated = input("Vilken kategori vill du ändra? ")
 
-    cateogry_changed = False
-    while not cateogry_changed:
+    category_changed = False
+    while not category_changed:
         print(
             f"Du har valt kategorin {category_to_be_updated}, dess gräns är satt till {categories[category_to_be_updated]}")
         valueToBeChanged = input(
@@ -71,20 +90,20 @@ def updateCategory():
 
             categories[new_category_name] = categories[category_to_be_updated]
             categories.pop(category_to_be_updated)
-            cateogry_changed = True
+            category_changed = True
             print(
                 f"Kategorin har updaterats, namn: {new_category_name} gräns: {categories[new_category_name]}")
 
         elif(valueToBeChanged == "gräns"):
-            new_category_limit = input(
+            new_category_limit = getFloatFromInput(
                 "Vad ska kategorins gräns ändras till? ")
             while(not isEnoughMoneyAvailable(new_category_limit)):
-                new_category_limit = float(input(
+                new_category_limit = getFloatFromInput(
                     f"Det finns inte tillräckligt med pengar för den här kategorin," +
-                    f"tillgänglig summa är {money_avaialable}, vad ska vi sätta för gräns istället för den nya kategorin? "))
+                    f"tillgänglig summa är {getMoneyAvailable()}, vad ska vi sätta för gräns istället för den nya kategorin? ")
 
             categories[category_to_be_updated] = new_category_limit
-            cateogry_changed = True
+            category_changed = True
             print(
                 f"Kategorin har updaterats, namn: {categories[category_to_be_updated]} gräns: {new_category_limit}")
 
@@ -98,13 +117,17 @@ def navigateToChoice(choice: str):
         updateCategory()
 
 
-# start of program
-print("Välkommen till Robins budgetprogram!")
+def startMainMenu():
+    print("Välkommen till Robins budgetprogram!")
+
+
 print("********************************************************************")
-money_avaialable = int(
-    input("Hur mycket pengar är tillförfogande för budgeten? "))
-while (not user_choice == "4"):
+budget_limit = getFloatFromInput(
+    "Hur mycket pengar får användas för budgeten? ")
+while not user_choice == "4":
     print("""********************************************************************
+Var vänlig välj tjänst: 
+
 1. Skriv ut kalkyl
 2. Lägg till kategori
 3. Ändra kategori
@@ -115,3 +138,11 @@ while (not user_choice == "4"):
 
 print("Avslutar program... ")
 time.sleep(3)
+
+# start of program
+try:
+    startMainMenu()
+except ValueError:
+    print("Something unexpected happened, we're rebooting the system...")
+    time.sleep(2)
+    startMainMenu()
