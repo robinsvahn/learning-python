@@ -15,7 +15,8 @@ def isEnoughMoneyAvailable(negative_change_in_funds: float) -> bool:
 
 
 def printBudget():
-    print("Printing budget....")
+    for key, value in categories.items():
+        print(f"{key} {'|' : >5} {value : >5}")
 
 
 def addNewCategory():
